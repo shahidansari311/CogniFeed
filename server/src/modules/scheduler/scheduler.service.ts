@@ -18,14 +18,14 @@ export class SchedulerService implements OnModuleInit {
   }
 
   async startAgentScheduler(agentId: string) {
-    // Fixed 2 minute interval for viewing/development
-    const intervalMs = 2 * 60 * 1000;
+    // 30 minute interval to prevent aggressive rate limits. Rely on Force Tick for demos.
+    const intervalMs = 30 * 60 * 1000;
     
     await this.schedulerQueue.upsertJobScheduler(
       `scheduler-${agentId}`,
       {
         every: intervalMs,
-        immediately: true, // Trigger instantly on creation
+        // removed immediately: true so it doesn't spam on init
       },
       {
         name: 'tick',

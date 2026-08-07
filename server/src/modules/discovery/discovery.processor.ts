@@ -21,14 +21,17 @@ export class DiscoveryProcessor extends WorkerHost {
     this.logger.log(`Running discovery for agent ${agentId}`);
     
     await this.prisma.consoleLog.create({
-      data: { agentId, level: 'info', message: 'Discovery Phase: Fetching latest RSS feeds (hnrss.org)...' }
+      data: { agentId, level: 'info', message: 'Discovery Phase: Fetching latest RSS feeds (TechCrunch)...' }
     });
 
     const parser = new Parser({ timeout: 10000 }); // Add timeout to prevent hanging
     try {
-      const feed = await parser.parseURL('https://hnrss.org/newest?points=20'); // Live AI/Tech source
+      // Switched from hnrss.org to techcrunch.com to avoid strict 429 rate limits
+      const feed = await parser.parseURL('https://techcrunch.com/feed/'); 
+      // Shuffle the feed items to ensure we don't process the exact same top articles every time
+      const shuffledItems = feed.items.sort(() => 0.5 - Math.random());
       
-      const candidates = feed.items.slice(0, 3).map(item => ({
+      const candidates = shuffledItems.slice(0, 5).map(item => ({
         title: item.title,
         snippet: item.contentSnippet || item.content || 'No content snippet available',
         url: item.link,

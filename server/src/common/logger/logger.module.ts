@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
         return {
           pinoHttp: {
             level: isProduction ? 'info' : 'debug',
+            autoLogging: false, // Disables verbose 'request completed' logs
             transport: isProduction
               ? undefined
               : {
