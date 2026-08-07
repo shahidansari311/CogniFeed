@@ -1,0 +1,143 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model Agent {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Persona configuration (JSON)
+  persona Json
+
+  // Relationships
+  posts          Post[]
+  rejected       RejectedCandidate[]
+  claims         Claim[]
+  logs           ConsoleLog[]
+  schedulerState SchedulerState?
+
+  @@map("agents")
+}
+
+model SchedulerState {
+  id        String   @id @default(uuid())
+  agentId   String   @unique
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  status     String   @default("running") // running, paused, stopped
+  nextTickAt DateTime
+  totalTicks Int      @default(0)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("scheduler_states")
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  text      String
+  rationale String
+  sources   String[]
+  topicTags String[]
+
+  // Editorial Metadata (JSON)
+  editorialMeta Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  claims     Claim[]
+  embeddings Embedding[]
+
+  @@index([agentId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model RejectedCandidate {
+  id        String   @id @default(uuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  title        String
+  snippet      String
+  url          String
+  sourceType   String
+  reason       String
+  scores       Json     // novelty, substance, credibility, relevance, timeliness
+  consideredAt DateTime @default(now())
+
+  // Relationships
+  embeddings Embedding[]
+
+  @@index([agentId])
+  @@map("rejected_candidates")
+}
+
+model Claim {
+  id        String   @id @default(uuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  claimText   String
+  status      String   @default("open") // open, confirmed, refined, retracted
+  entities    String[]
+  topicTags   String[]
+  resolution  String?  // Explanation of how it was resolved
+
+  openedAt    DateTime @default(now())
+  resolvedAt  DateTime?
+
+  @@index([agentId])
+  @@index([status])
+  @@map("claims")
+}
+
+model Embedding {
+  id        String   @id @default(uuid())
+  
+  // Polymorphic relation (either a Post or a RejectedCandidate)
+  postId              String?
+  post                Post?              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  rejectedCandidateId String?
+  rejectedCandidate   RejectedCandidate? @relation(fields: [rejectedCandidateId], references: [id], onDelete: Cascade)
+
+  text       String
+  embedding  Unsupported("vector(1536)")
+
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@index([rejectedCandidateId])
+  @@map("embeddings")
+}
+
+model ConsoleLog {
+  id        String   @id @default(uuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  level     String   // info, discovery, editorial, publish, ledger, warn, error
+  message   String
+  timestamp DateTime @default(now())
+
+  @@index([agentId])
+  @@index([timestamp])
+  @@map("console_logs")
+}
