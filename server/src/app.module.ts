@@ -18,7 +18,6 @@ import { EditorialModule } from './modules/editorial/editorial.module';
     LoggerModule,
     PrismaModule,
     HealthModule,
-    AgentModule,
     FeedModule,
     LedgerModule,
     QueueModule,
@@ -26,6 +25,7 @@ import { EditorialModule } from './modules/editorial/editorial.module';
     LlmModule,
     DiscoveryModule,
     EditorialModule,
+    AgentModule,
   ],
 })
 export class AppModule {}

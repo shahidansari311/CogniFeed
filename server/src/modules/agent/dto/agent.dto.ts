@@ -1,28 +1,34 @@
 import { IsString, IsArray, IsNotEmpty, IsObject, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class VoiceContractDto {
+export class PersonaVoiceDto {
   @IsString()
   @IsNotEmpty()
   tone: string;
 
   @IsString()
   @IsNotEmpty()
-  format: string;
+  sentenceStyle: string;
 
-  @IsString()
-  @IsNotEmpty()
-  vocabulary: string;
+  @IsArray()
+  @IsString({ each: true })
+  signatureMoves: string[];
+}
 
-  @IsString()
-  @IsNotEmpty()
-  forbiddenPhrases: string;
+export class EditorialStandardsDto {
+  @IsArray()
+  @IsString({ each: true })
+  rejectIf: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  preferIf: string[];
 }
 
 export class PersonaDto {
   @IsString()
-  @IsNotEmpty()
-  id: string;
+  @IsOptional()
+  id?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -42,8 +48,13 @@ export class PersonaDto {
 
   @IsObject()
   @ValidateNested()
-  @Type(() => VoiceContractDto)
-  voiceContract: VoiceContractDto;
+  @Type(() => PersonaVoiceDto)
+  voice: PersonaVoiceDto;
+
+  @IsObject()
+  @ValidateNested()
+  @Type(() => EditorialStandardsDto)
+  editorialStandards: EditorialStandardsDto;
 }
 
 export class InitAgentDto {

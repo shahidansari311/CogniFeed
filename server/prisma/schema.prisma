@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "driverAdapters"]
 }
 
 datasource db {
@@ -14,6 +14,9 @@ model Agent {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
+  // Dedicated scalar field for querying and idempotency
+  personaId String?
+
   // Persona configuration (JSON)
   persona Json
 
@@ -24,6 +27,7 @@ model Agent {
   logs           ConsoleLog[]
   schedulerState SchedulerState?
 
+  @@index([personaId])
   @@map("agents")
 }
 

@@ -13,13 +13,12 @@ export class AgentService {
   ) {}
 
   async initAgent(dto: InitAgentDto) {
+    const personaId = dto.persona.id || dto.persona.name;
+
     // Check if an agent with this persona ID already exists to make it idempotent
     const existing = await this.prisma.agent.findFirst({
       where: {
-        persona: {
-          path: ['id'],
-          equals: dto.persona.id
-        }
+        personaId: personaId
       },
       include: {
         schedulerState: true,
@@ -34,6 +33,7 @@ export class AgentService {
     // Create a new agent and its scheduler state
     const agent = await this.prisma.agent.create({
       data: {
+        personaId,
         persona: JSON.parse(JSON.stringify(dto.persona)), // Store persona as JSON
         schedulerState: {
           create: {
@@ -50,7 +50,7 @@ export class AgentService {
             },
             {
               level: 'info',
-              message: `Voice contract compiled: ${dto.persona.voiceContract.tone}`
+              message: `Voice contract compiled: ${dto.persona.voice.tone}`
             }
           ]
         }

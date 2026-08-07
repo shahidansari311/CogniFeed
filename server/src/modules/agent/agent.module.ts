@@ -9,7 +9,7 @@ import { SchedulerModule } from '../scheduler/scheduler.module';
 
 @Module({
   imports: [SchedulerModule],
-  controllers: [AgentController, RejectionsController, LogsController],
+  controllers: [RejectionsController, LogsController, AgentController],
   providers: [AgentService, RejectionsService, LogsService],
   exports: [AgentService],
 })
