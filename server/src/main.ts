@@ -37,6 +37,6 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   await app.listen(port);
   
-  logger.log(`🚀 Signal Server running on port ${port}`, 'Bootstrap');
+  logger.log(`🚀 CogniFeed Server running on port ${port}`, 'Bootstrap');
 }
 bootstrap();

@@ -10,17 +10,14 @@ export const envSchema = z.object({
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_PASSWORD: z.string().optional(),
   
-  ANTHROPIC_API_KEY: z.string().min(1, "Anthropic API key is required"),
+  GROQ_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   
-  SERPER_API_KEY: z.string().optional(),
-  TAVILY_API_KEY: z.string().optional(),
-  
-  JWT_SECRET: z.string().min(8),
   CORS_ORIGIN: z.string().url(),
-}).refine(data => data.SERPER_API_KEY || data.TAVILY_API_KEY, {
-  message: "At least one search API key (SERPER_API_KEY or TAVILY_API_KEY) must be provided",
-  path: ["SERPER_API_KEY"],
+}).refine(data => data.GROQ_API_KEY || data.ANTHROPIC_API_KEY || data.OPENAI_API_KEY, {
+  message: "At least one LLM API key (GROQ_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY) must be provided",
+  path: ["GROQ_API_KEY"],
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

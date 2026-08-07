@@ -107,4 +107,10 @@ Return JSON matching this schema exactly:
 
     return agent;
   }
+
+  async triggerAgentTick(id: string) {
+    // Manually force a scheduler tick
+    await this.schedulerService.triggerAgentScheduler(id);
+    return { success: true, message: 'Tick triggered manually' };
+  }
 }

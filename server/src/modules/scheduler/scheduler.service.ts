@@ -55,4 +55,9 @@ export class SchedulerService implements OnModuleInit {
 
     this.logger.log(`Stopped scheduler for agent ${agentId}`);
   }
+
+  async triggerAgentScheduler(agentId: string) {
+    this.logger.log(`Manually triggering scheduler tick for agent ${agentId}`);
+    await this.schedulerQueue.add('tick', { agentId });
+  }
 }

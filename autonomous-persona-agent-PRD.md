@@ -1,6 +1,6 @@
 # PRD: Autonomous AI & Technology Persona Agent
 
-**Codename:** *Signal* — an autonomous editorial agent that discovers, judges, writes, and publishes tech commentary without human input after initialization.
+**Codename:** *CogniFeed* — an autonomous editorial agent that discovers, judges, writes, and publishes tech commentary without human input after initialization.
 
 **Owner:** [you]
 **Status:** Draft v1.0
@@ -172,7 +172,7 @@ Every post object includes:
 ## 7. Out-of-the-Box Feature: **The Claims Ledger & Self-Correction Thread Engine**
 
 ### 7.1 The idea
-Real analysts are credible because they're *accountable over time*: they make calls, and later they revisit them — confirm, refine, or retract. Almost no AI content bot does this; they generate isolated posts. **Signal** maintains a structured **claims ledger** extracted from its own published posts, and a background process periodically re-examines open claims against fresh discovery results. When warranted, it autonomously publishes one of three follow-up post types:
+Real analysts are credible because they're *accountable over time*: they make calls, and later they revisit them — confirm, refine, or retract. Almost no AI content bot does this; they generate isolated posts. **CogniFeed** maintains a structured **claims ledger** extracted from its own published posts, and a background process periodically re-examines open claims against fresh discovery results. When warranted, it autonomously publishes one of three follow-up post types:
 
 | Type | Trigger | Example |
 |---|---|---|

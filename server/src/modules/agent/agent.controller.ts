@@ -20,4 +20,10 @@ export class AgentController {
   async getAgent(@Param('id') id: string) {
     return this.agentService.getAgent(id);
   }
+
+  @Post(':id/trigger')
+  @HttpCode(HttpStatus.OK)
+  async triggerAgent(@Param('id') id: string) {
+    return this.agentService.triggerAgentTick(id);
+  }
 }

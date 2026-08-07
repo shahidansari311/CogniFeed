@@ -28,16 +28,21 @@ export class EditorialProcessor extends WorkerHost {
     const persona: any = agent.persona;
     const standards = JSON.stringify(persona.editorialStandards);
 
-    const evaluation = await this.llmService.generateJson<any>({
-      systemPrompt: 'You are a strict editorial judge for an AI/Tech persona. Evaluate the given candidates.',
-      userPrompt: `Persona Standards: ${standards}\n\nCandidates: ${JSON.stringify(candidates)}\n\nEvaluate each candidate. Return a JSON object with:
+    await this.prisma.consoleLog.create({
+      data: { agentId, level: 'info', message: `Editorial Phase: Evaluating ${candidates.length} candidates against persona standards...` }
+    });
+
+    try {
+      const evaluation = await this.llmService.generateJson<any>({
+        systemPrompt: 'You are a strict editorial judge for an AI/Tech persona. Evaluate the given candidates.',
+        userPrompt: `Persona Standards: ${standards}\n\nCandidates: ${JSON.stringify(candidates)}\n\nEvaluate each candidate. Return a JSON object with:
 {
   "evaluations": [
     { "index": 0, "approved": true/false, "reason": "why", "scores": { "novelty": 0-100, "substance": 0-100, "credibility": 0-100, "relevance": 0-100, "timeliness": 0-100 } }
   ],
   "bestCandidateIndex": <index of best approved candidate, or null if none approved>
 }`
-    });
+      });
 
     for (const evalResult of evaluation.evaluations) {
       const candidate = candidates[evalResult.index];
@@ -67,8 +72,22 @@ export class EditorialProcessor extends WorkerHost {
           candidate: best,
           scores: bestEval.scores
         });
+        await this.prisma.consoleLog.create({
+          data: { agentId, level: 'info', message: `Editorial Phase: Approved candidate "${best.title}" for publishing.` }
+        });
         this.logger.log(`Approved candidate ${best.title} for publishing.`);
       }
+    } else {
+      await this.prisma.consoleLog.create({
+        data: { agentId, level: 'warn', message: `Editorial Phase: All candidates rejected. Waiting for next tick.` }
+      });
+    }
+
+    } catch (error: any) {
+      this.logger.error(`Editorial failed: ${error.message}`);
+      await this.prisma.consoleLog.create({
+        data: { agentId, level: 'error', message: `Editorial Phase Failed: ${error.message}` }
+      });
     }
   }
 }

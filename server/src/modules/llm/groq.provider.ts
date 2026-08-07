@@ -8,8 +8,8 @@ export class GroqProvider implements LlmProvider {
   private groq: Groq;
   private readonly logger = new Logger(GroqProvider.name);
   
-  // Defaulting to llama3-70b-8192 for high intelligence tasks
-  private readonly MODEL = 'llama3-70b-8192';
+  // Defaulting to llama-3.3-70b-versatile as older models were decommissioned
+  private readonly MODEL = 'llama-3.3-70b-versatile';
 
   constructor(private configService: ConfigService) {
     this.groq = new Groq({
