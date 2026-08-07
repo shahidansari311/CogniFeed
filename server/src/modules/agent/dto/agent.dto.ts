@@ -35,8 +35,8 @@ export class PersonaDto {
   name: string;
 
   @IsString()
-  @IsNotEmpty()
-  role: string;
+  @IsOptional()
+  role?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -44,20 +44,27 @@ export class PersonaDto {
 
   @IsArray()
   @IsString({ each: true })
-  stableInterests: string[];
+  @IsOptional()
+  stableInterests?: string[];
 
   @IsObject()
   @ValidateNested()
   @Type(() => PersonaVoiceDto)
-  voice: PersonaVoiceDto;
+  @IsOptional()
+  voice?: PersonaVoiceDto;
 
   @IsObject()
   @ValidateNested()
   @Type(() => EditorialStandardsDto)
-  editorialStandards: EditorialStandardsDto;
+  @IsOptional()
+  editorialStandards?: EditorialStandardsDto;
 }
 
 export class InitAgentDto {
+  @IsString()
+  @IsOptional()
+  userId?: string;
+
   @IsObject()
   @ValidateNested()
   @Type(() => PersonaDto)

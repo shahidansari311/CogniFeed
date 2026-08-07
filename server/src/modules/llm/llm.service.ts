@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AnthropicProvider } from './anthropic.provider';
+import { GroqProvider } from './groq.provider';
 import { LlmGenerationConfig, LlmProvider } from './llm.provider.interface';
 import { ConfigService } from '@nestjs/config';
 
@@ -9,10 +10,15 @@ export class LlmService implements LlmProvider {
 
   constructor(
     private configService: ConfigService,
-    private anthropicProvider: AnthropicProvider
+    private anthropicProvider: AnthropicProvider,
+    private groqProvider: GroqProvider
   ) {
-    // In the future, this can be dynamic based on config
-    this.provider = this.anthropicProvider;
+    // Automatically use Groq if the API key is present
+    if (this.configService.get<string>('GROQ_API_KEY')) {
+      this.provider = this.groqProvider;
+    } else {
+      this.provider = this.anthropicProvider;
+    }
   }
 
   generate(config: LlmGenerationConfig): Promise<string> {

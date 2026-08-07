@@ -2,6 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
+import Parser from 'rss-parser';
 
 @Processor('discovery')
 export class DiscoveryProcessor extends WorkerHost {
@@ -17,18 +18,26 @@ export class DiscoveryProcessor extends WorkerHost {
     const { agentId } = job.data;
     this.logger.log(`Running discovery for agent ${agentId}`);
 
-    // TODO: 
-    // 1. Fetch RSS feeds
-    // 2. Perform web search queries based on agent's stable interests
-    // 3. Filter out candidates that aren't relevant
-    // 4. Pass surviving candidates to editorial queue
+    const parser = new Parser();
+    try {
+      const feed = await parser.parseURL('https://hnrss.org/newest?points=20'); // Live AI/Tech source
+      
+      const candidates = feed.items.slice(0, 3).map(item => ({
+        title: item.title,
+        snippet: item.contentSnippet || item.content || 'No content snippet available',
+        url: item.link,
+        sourceType: 'rss'
+      }));
 
-    // Mock passing to editorial for now
-    await this.editorialQueue.add('score', {
-      agentId,
-      candidates: [
-        { title: 'Mock Candidate 1', snippet: '...', url: 'http://example.com/1', sourceType: 'rss' }
-      ]
-    });
+      if (candidates.length > 0) {
+        await this.editorialQueue.add('score', {
+          agentId,
+          candidates
+        });
+        this.logger.log(`Passed ${candidates.length} live candidates to editorial queue.`);
+      }
+    } catch (error: any) {
+      this.logger.error(`Discovery failed: ${error.message}`);
+    }
   }
 }

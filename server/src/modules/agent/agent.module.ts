@@ -7,8 +7,10 @@ import { LogsController } from './logs.controller';
 import { LogsService } from './logs.service';
 import { SchedulerModule } from '../scheduler/scheduler.module';
 
+import { LlmModule } from '../llm/llm.module';
+
 @Module({
-  imports: [SchedulerModule],
+  imports: [SchedulerModule, LlmModule],
   controllers: [RejectionsController, LogsController, AgentController],
   providers: [AgentService, RejectionsService, LogsService],
   exports: [AgentService],

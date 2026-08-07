@@ -11,6 +11,7 @@ import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { LlmModule } from './modules/llm/llm.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { EditorialModule } from './modules/editorial/editorial.module';
+import { PublishModule } from './modules/publish/publish.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EditorialModule } from './modules/editorial/editorial.module';
     LlmModule,
     DiscoveryModule,
     EditorialModule,
+    PublishModule,
     AgentModule,
   ],
 })

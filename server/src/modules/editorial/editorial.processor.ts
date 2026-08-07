@@ -3,6 +3,7 @@ import { Job, Queue } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { LlmService } from '../llm/llm.service';
+import { PrismaService } from '../../common/database/prisma.service';
 
 @Processor('editorial')
 export class EditorialProcessor extends WorkerHost {
@@ -10,6 +11,7 @@ export class EditorialProcessor extends WorkerHost {
 
   constructor(
     private llmService: LlmService,
+    private prisma: PrismaService,
     @InjectQueue('publish') private publishQueue: Queue,
   ) {
     super();
@@ -17,21 +19,56 @@ export class EditorialProcessor extends WorkerHost {
 
   async process(job: Job<{ agentId: string, candidates: any[] }>) {
     const { agentId, candidates } = job.data;
+    if (!candidates || candidates.length === 0) return;
     this.logger.log(`Running editorial scoring for ${candidates.length} candidates on agent ${agentId}`);
 
-    // TODO:
-    // 1. Run deterministic pre-filters (age, duplicate URL)
-    // 2. Call LLM to score (novelty, substance, credibility, relevance, timeliness)
-    // 3. Reject those below threshold, log to RejectedCandidate DB
-    // 4. Pass the best candidate to the publish queue to generate a draft
+    const agent = await this.prisma.agent.findUnique({ where: { id: agentId } });
+    if (!agent) return;
 
-    // Mock passing to publish
-    if (candidates.length > 0) {
-      await this.publishQueue.add('draft', {
-        agentId,
-        candidate: candidates[0],
-        scores: { novelty: 80, substance: 75, credibility: 90, relevance: 85, timeliness: 95 }
-      });
+    const persona: any = agent.persona;
+    const standards = JSON.stringify(persona.editorialStandards);
+
+    const evaluation = await this.llmService.generateJson<any>({
+      systemPrompt: 'You are a strict editorial judge for an AI/Tech persona. Evaluate the given candidates.',
+      userPrompt: `Persona Standards: ${standards}\n\nCandidates: ${JSON.stringify(candidates)}\n\nEvaluate each candidate. Return a JSON object with:
+{
+  "evaluations": [
+    { "index": 0, "approved": true/false, "reason": "why", "scores": { "novelty": 0-100, "substance": 0-100, "credibility": 0-100, "relevance": 0-100, "timeliness": 0-100 } }
+  ],
+  "bestCandidateIndex": <index of best approved candidate, or null if none approved>
+}`
+    });
+
+    for (const evalResult of evaluation.evaluations) {
+      const candidate = candidates[evalResult.index];
+      if (!candidate) continue;
+
+      if (!evalResult.approved || evalResult.index !== evaluation.bestCandidateIndex) {
+        await this.prisma.rejectedCandidate.create({
+          data: {
+            agentId,
+            title: candidate.title.substring(0, 255),
+            snippet: candidate.snippet.substring(0, 1000),
+            url: candidate.url,
+            sourceType: candidate.sourceType,
+            reason: evalResult.reason,
+            scores: evalResult.scores
+          }
+        });
+      }
+    }
+
+    if (evaluation.bestCandidateIndex !== null && evaluation.bestCandidateIndex !== undefined) {
+      const best = candidates[evaluation.bestCandidateIndex];
+      const bestEval = evaluation.evaluations.find((e: any) => e.index === evaluation.bestCandidateIndex);
+      if (best && bestEval) {
+        await this.publishQueue.add('draft', {
+          agentId,
+          candidate: best,
+          scores: bestEval.scores
+        });
+        this.logger.log(`Approved candidate ${best.title} for publishing.`);
+      }
     }
   }
 }

@@ -18,13 +18,14 @@ export class SchedulerService implements OnModuleInit {
   }
 
   async startAgentScheduler(agentId: string) {
-    // Random jitter 45 to 90 minutes
-    const intervalMs = Math.floor(Math.random() * (90 - 45 + 1) + 45) * 60 * 1000;
+    // Fixed 2 minute interval for viewing/development
+    const intervalMs = 2 * 60 * 1000;
     
     await this.schedulerQueue.upsertJobScheduler(
       `scheduler-${agentId}`,
       {
         every: intervalMs,
+        immediately: true, // Trigger instantly on creation
       },
       {
         name: 'tick',
