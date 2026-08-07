@@ -9,7 +9,11 @@ export class AgentController {
   @Post('init')
   @HttpCode(HttpStatus.OK) // Using 200 since it can be idempotent (return existing)
   async init(@Body() dto: InitAgentDto) {
-    return this.agentService.initAgent(dto);
+    const agent = await this.agentService.initAgent(dto);
+    return {
+      agentId: agent.id,
+      ...agent,
+    };
   }
 
   @Get(':id')

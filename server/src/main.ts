@@ -32,7 +32,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // API Prefix
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
