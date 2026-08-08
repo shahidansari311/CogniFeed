@@ -60,6 +60,13 @@ Return JSON matching this exactly:
 }`
     });
 
+    const novelty = scores?.novelty ?? 0;
+    const substance = scores?.substance ?? 0;
+    const credibility = scores?.credibility ?? 0;
+    const relevance = scores?.relevance ?? 0;
+    const timeliness = scores?.timeliness ?? 0;
+    const overallScore = Math.round((novelty + substance + credibility + relevance + timeliness) / 5);
+
     await this.prisma.post.create({
       data: {
         agentId,
@@ -69,7 +76,14 @@ Return JSON matching this exactly:
         topicTags: postGeneration.topicTags,
         editorialMeta: {
           candidateTitle: candidate.title,
-          scores
+          noveltyScore: novelty,
+          substanceScore: substance,
+          credibilityScore: credibility,
+          relevanceScore: relevance,
+          timelinessScore: timeliness,
+          overallScore,
+          candidatesConsidered: 1,
+          rejectedAlternatives: [],
         }
       }
     });

@@ -70,6 +70,24 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 }
 
 /* ────────────────────────────────────────────
+   Normalize editorial scores (handles legacy nested shape)
+   ──────────────────────────────────────────── */
+
+function normalizeScores(meta: any) {
+  // New shape: flat properties (noveltyScore, substanceScore, etc.)
+  // Legacy shape: nested under meta.scores (scores.novelty, scores.substance, etc.)
+  const s = meta?.scores;
+  return {
+    novelty: meta?.noveltyScore ?? s?.novelty ?? 0,
+    substance: meta?.substanceScore ?? s?.substance ?? 0,
+    credibility: meta?.credibilityScore ?? s?.credibility ?? 0,
+    relevance: meta?.relevanceScore ?? s?.relevance ?? 0,
+    timeliness: meta?.timelinessScore ?? s?.timeliness ?? 0,
+    overall: meta?.overallScore ?? s?.overall ?? null,
+  };
+}
+
+/* ────────────────────────────────────────────
    Post Card
    ──────────────────────────────────────────── */
 
@@ -83,6 +101,10 @@ function PostCard({ post, allPosts }: { post: Post; allPosts: Post[] }) {
     : null;
 
   const relativeTime = getRelativeTime(post.createdAt);
+  const scores = normalizeScores(post.editorialMeta);
+  const overallDisplay = (scores.overall ?? Math.round(
+    (scores.novelty + scores.substance + scores.credibility + scores.relevance + scores.timeliness) / 5
+  )) || "N/A";
 
   return (
     <motion.div variants={fadeInUp}>
@@ -120,7 +142,7 @@ function PostCard({ post, allPosts }: { post: Post; allPosts: Post[] }) {
             </Tooltip>
             <span className="text-xs text-muted-foreground">·</span>
             <Badge variant="outline" className="text-xs">
-              Score: {post.editorialMeta?.overallScore || post.editorialMeta?.scores?.overall || "N/A"}
+              Score: {overallDisplay}
             </Badge>
             {post.topicTags.map((tag) => (
               <Badge key={tag} variant="secondary" className="text-xs font-normal">
@@ -185,11 +207,11 @@ function PostCard({ post, allPosts }: { post: Post; allPosts: Post[] }) {
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Scores
                 </h4>
-                <ScoreBar label="Novelty" value={post.editorialMeta?.noveltyScore || post.editorialMeta?.scores?.novelty || 0} />
-                <ScoreBar label="Substance" value={post.editorialMeta?.substanceScore || post.editorialMeta?.scores?.substance || 0} />
-                <ScoreBar label="Credibility" value={post.editorialMeta?.credibilityScore || post.editorialMeta?.scores?.credibility || 0} />
-                <ScoreBar label="Relevance" value={post.editorialMeta?.relevanceScore || post.editorialMeta?.scores?.relevance || 0} />
-                <ScoreBar label="Timeliness" value={post.editorialMeta?.timelinessScore || post.editorialMeta?.scores?.timeliness || 0} />
+                <ScoreBar label="Novelty" value={scores.novelty} />
+                <ScoreBar label="Substance" value={scores.substance} />
+                <ScoreBar label="Credibility" value={scores.credibility} />
+                <ScoreBar label="Relevance" value={scores.relevance} />
+                <ScoreBar label="Timeliness" value={scores.timeliness} />
               </div>
 
               {post.editorialMeta?.rejectedAlternatives && post.editorialMeta.rejectedAlternatives.length > 0 && (
